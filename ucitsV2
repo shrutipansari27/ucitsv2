@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UCITS ETF Tax Advantage — Wio Invest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand:  #5700FF;
+  --accent: #EEE6FE;
+  --white:  #FFFFFF;
+  --ink:    #0D0D1A;
+  --muted:  #6B7280;
+  --faint:  #F4F3F8;
+  --border: #E8E6F0;
+}
+
+html, body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+nav {
+  max-width: 100%; margin: 0;
+  padding: 16px 32px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.nav-logo img { height: 30px; width: 30px; border-radius: 7px; display: block; }
+.nav-logo-name { font-size: 13px; font-weight: 800; color: var(--ink); }
+.nav-chip { font-size: 11px; font-weight: 600; color: var(--brand); background: var(--accent); border-radius: 99px; padding: 4px 12px; }
+
+.page { max-width: 100%; margin: 0; padding: 0 32px 32px; display: flex; flex-direction: column; min-height: calc(100vh - 56px); }
+
+.hero { padding: 28px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.hero-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--brand); margin-bottom: 10px; }
+.hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+.hero-headline { font-size: clamp(24px, 3vw, 34px); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; color: var(--ink); margin-bottom: 8px; }
+.hero-headline em { font-style: italic; color: var(--brand); }
+.hero-sub { font-size: 14px; line-height: 1.6; color: var(--muted); max-width: 560px; }
+
+.main-row { display: grid; grid-template-columns: 2fr 3fr; gap: 20px; align-items: stretch; min-width: 0; flex: 1; }
+
+/* Inputs */
+.inputs-panel { border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-evenly; height: 100%; min-width: 0; }
+.s-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.s-lbl { font-size: 12px; font-weight: 600; color: var(--muted); }
+.s-input-wrap { display: flex; align-items: center; gap: 2px; border: 1.5px solid var(--border); border-radius: 8px; padding: 5px 8px; background: var(--faint); flex-shrink: 0; transition: all 0.15s; }
+.s-input-wrap:focus-within { border-color: var(--brand); background: white; box-shadow: 0 0 0 3px rgba(87,0,255,0.07); }
+.s-input-wrap .pfx { font-size: 12px; font-weight: 600; color: var(--muted); }
+.s-input-wrap .sfx { font-size: 11px; font-weight: 500; color: var(--muted); }
+.s-input-wrap input[type=number] { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); background: transparent; border: none; outline: none; width: 60px; max-width: 100%; padding: 0; -moz-appearance: textfield; }
+.s-input-wrap input[type=number]::-webkit-outer-spin-button,
+.s-input-wrap input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.s-input-wrap input.pct { width: 36px; }
+.track-wrap { position: relative; height: 3px; background: var(--border); border-radius: 99px; }
+.track-fill { position: absolute; inset: 0 auto 0 0; background: var(--brand); border-radius: 99px; pointer-events: none; }
+input[type=range] { -webkit-appearance: none; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 100%; height: 22px; background: transparent; cursor: pointer; outline: none; margin: 0; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: white; border: 2px solid var(--brand); box-shadow: 0 1px 6px rgba(87,0,255,0.2); }
+.tick-row { position: relative; height: 14px; margin-top: 4px; }
+.tick-row span { position: absolute; transform: translateX(-50%); font-size: 10px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+.tick-row span:first-child { transform: none; }
+.tick-row span:last-child  { transform: translateX(-100%); }
+.divider { height: 1px; background: var(--border); flex-shrink: 0; margin: 0; }
+.pills-lbl { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.pill { padding: 5px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); background: var(--faint); border: 1.5px solid var(--border); border-radius: 99px; cursor: pointer; transition: all 0.15s; }
+.pill:hover { border-color: var(--brand); color: var(--brand); }
+.pill.active { background: var(--brand); color: white; border-color: var(--brand); }
+
+/* Results */
+.results-panel { display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0; }
+
+.stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+.stat-box { border-radius: 14px; padding: 14px 16px; border: 1.5px solid var(--border); }
+.stat-box.primary { background: var(--brand); border-color: var(--brand); }
+.stat-box.primary .stat-value { font-size: 26px; }
+.stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; line-height: 1.4; }
+.stat-box.primary .stat-label { color: rgba(255,255,255,0.65); }
+.stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); line-height: 1; }
+.stat-box.primary .stat-value { color: white; }
+.stat-sub { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.stat-box.primary .stat-sub { color: rgba(255,255,255,0.55); }
+
+/* Tabbed chart */
+.chart-section { border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; flex: 1; display: flex; flex-direction: column; padding-bottom: 4px; }
+.chart-tabs { display: flex; background: var(--faint); border-radius: 12px; padding: 4px; gap: 4px; flex-shrink: 0; margin: 16px 18px 0; }
+.chart-tab { flex: 1; padding: 9px 16px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); background: transparent; border: none; border-radius: 9px; cursor: pointer; transition: all 0.15s; text-align: center; }
+.chart-tab:hover { color: var(--ink); }
+.chart-tab.active { color: var(--ink); background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1); font-weight: 700; }
+.chart-pane { display: none; flex-direction: column; flex: 1; }
+.chart-pane.active { display: flex; flex-direction: column; flex: 1; }
+.chart-box-sub { font-size: 10.5px; color: var(--muted); margin-bottom: 8px; }
+.chart-legend { display: flex; gap: 12px; margin-bottom: 10px; }
+.leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); font-weight: 500; }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; }
+.leg-line-icon { width: 12px; height: 2px; border-radius: 1px; }
+.chart-wrap { flex: 1; min-height: 140px; position: relative; }
+
+.disc { font-size: 10.5px; color: var(--muted); line-height: 1.6; }
+
+@media (max-width: 1000px) {
+  .main-row { grid-template-columns: 1fr; align-items: start; }
+  .inputs-panel { height: auto; justify-content: flex-start; gap: 0; }
+  .results-panel { height: auto; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .stat-box .stat-value { font-size: 22px; }
+}
+@media (max-width: 560px) {
+  nav, .page { padding-left: 12px; padding-right: 12px; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .hero-headline { font-size: 26px; }
+  .s-input-wrap input[type=number] { width: 55px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="data:image/png;base64,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" alt="Wio" style="height:30px;width:30px;border-radius:7px;display:block;"/>
+    
+  </a>
+  <span class="nav-logo-name" style="font-size:13px;font-weight:800;color:var(--ink);">Wio Invest</span>
+  <span class="nav-chip">Stocks &amp; ETFs</span>
+</nav>
+
+<div class="page">
+  <div class="hero">
+    <div class="hero-tag"><span class="hero-tag-dot"></span>Wio Invest now offers UCITS ETFs</div>
+    <h1 class="hero-headline">Save dividend tax.<br>Keep more of <em>your returns.</em></h1>
+    <p class="hero-sub">Irish-domiciled UCITS ETFs typically benefit from a 15% dividend tax rate vs 30% for US ETFs. See what that means for your money.</p>
+  </div>
+
+  <div class="main-row">
+
+    <!-- LEFT -->
+    <div class="inputs-panel">
+
+      <div>
+        <div class="s-top">
+          <span class="s-lbl">Initial investment</span>
+          <div class="s-input-wrap"><span class="pfx">$</span><input type="number" id="amtInput" value="100000" min="10000" max="500000" step="5000"/></div>
+        </div>
+        <div class="track-wrap"><div class="track-fill" id="trackFill" style="width:18.4%"></div><input type="range" id="amtSlider" min="10000" max="500000" step="5000" value="100000"/></div>
+        <div class="tick-row"><span style="left:0%">$10K</span><span style="left:49%">$250K</span><span style="left:100%">$500K</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="s-top">
+          <span class="s-lbl">Monthly contribution</span>
+          <div class="s-input-wrap"><span class="pfx">$</span><input type="number" id="moInput" value="0" min="0" max="10000" step="100"/><span class="sfx">/mo</span></div>
+        </div>
+        <div class="track-wrap"><div class="track-fill" id="moFill" style="width:0%"></div><input type="range" id="moSlider" min="0" max="10000" step="100" value="0"/></div>
+        <div class="tick-row"><span style="left:0%">$0</span><span style="left:50%">$5K</span><span style="left:100%">$10K</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="s-top">
+          <span class="s-lbl">Dividend yield</span>
+          <div class="s-input-wrap"><input type="number" id="divInput" value="2" min="0.5" max="5" step="0.1" class="pct"/><span class="sfx">%</span></div>
+        </div>
+        <div class="track-wrap"><div class="track-fill" id="divFill" style="width:33.3%"></div><input type="range" id="divSlider" min="0.5" max="5" step="0.1" value="2"/></div>
+        <div class="tick-row"><span style="left:0%">0.5%</span><span style="left:50%">2.75%</span><span style="left:100%">5%</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="s-top">
+          <span class="s-lbl">Annual return rate</span>
+          <div class="s-input-wrap"><input type="number" id="retInput" value="7" min="1" max="15" step="0.5" class="pct"/><span class="sfx">%</span></div>
+        </div>
+        <div class="track-wrap"><div class="track-fill" id="retFill" style="width:42.9%"></div><input type="range" id="retSlider" min="1" max="15" step="0.5" value="7"/></div>
+        <div class="tick-row"><span style="left:0%">1%</span><span style="left:50%">8%</span><span style="left:100%">15%</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="pills-lbl">Investment horizon</div>
+        <div class="pills">
+          <button class="pill" onclick="setYears(5)">5 yrs</button>
+          <button class="pill" onclick="setYears(10)">10 yrs</button>
+          <button class="pill" onclick="setYears(15)">15 yrs</button>
+          <button class="pill active" onclick="setYears(20)">20 yrs</button>
+          <button class="pill" onclick="setYears(25)">25 yrs</button>
+          <button class="pill" onclick="setYears(30)">30 yrs</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="results-panel">
+
+      <div class="stat-row">
+        <div class="stat-box primary">
+          <div class="stat-label">Extra earnings with UCITS ETFs</div>
+          <div class="stat-value" id="statGap">—</div>
+          <div class="stat-sub" id="statSub">vs a US ETF after 20 years</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total invested</div>
+          <div class="stat-value" id="statInvested">—</div>
+          <div class="stat-sub" id="statInvestedSub">over 20 years</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">UCITS ETF value</div>
+          <div class="stat-value" id="statUC">—</div>
+          <div class="stat-sub" id="statUCSub">after 20 years</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">US ETF value</div>
+          <div class="stat-value" id="statUS">—</div>
+          <div class="stat-sub" id="statUSSub">after 20 years</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-tabs">
+          <button class="chart-tab active" data-tab="drag" onclick="switchTab('drag')">Tax drag</button>
+          <button class="chart-tab" data-tab="savings" onclick="switchTab('savings')">Extra earnings with UCITS</button>
+        </div>
+        <div class="chart-pane" id="pane-savings" style="padding:16px 18px">
+          <div class="chart-box-sub" id="savingsChartSub">—</div>
+          <div class="chart-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:#A78BFA"></div>Annual extra</div>
+            <div class="leg-item"><div class="leg-line-icon" style="background:var(--brand)"></div>Cumulative</div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartSavings"></canvas></div>
+        </div>
+        <div class="chart-pane active" id="pane-drag" style="padding:16px 18px">
+          <div class="chart-box-sub" id="dragChartSub">—</div>
+          <div class="chart-legend">
+            <div class="leg-item"><div class="leg-line-icon" style="background:#DC2626"></div>US ETF cumulative tax</div>
+            <div class="leg-item"><div class="leg-line-icon" style="background:#A78BFA"></div>UCITS cumulative tax</div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartDrag"></canvas></div>
+        </div>
+      </div>
+
+      <p class="disc">Illustrative only. Withholding tax: 15% (UCITS) vs 30% (US ETF). Dividends reinvested annually. Not financial or tax advice. Actual returns will vary.</p>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let years = 20, inv = 100000, monthly = 0, divYield = 0.02, annualRet = 0.07;
+
+function calc(lumpsum, mo, yrs, dy, ar) {
+  const mG = Math.pow(1 + ar, 1/12);
+  const netUS = dy * 0.70;
+  const netUC = dy * 0.85;
+  let usP = lumpsum, ucP = lumpsum, first = true;
+  const gapByYear = [], annDrag = [], cumDrag = [];
+  const taxUSLine = [], taxUCLine = [];
+  let runDrag = 0, runTaxUS = 0, runTaxUC = 0;
+
+  for (let y = 1; y <= yrs; y++) {
+    let ucNov = 0;
+    for (let m = 1; m <= 12; m++) {
+      if (m === 12) ucNov = ucP;
+      if (first) { usP = usP*mG; ucP = ucP*mG; first = false; }
+      else        { usP = (usP+mo)*mG; ucP = (ucP+mo)*mG; }
+    }
+    const usDivNet = usP * netUS;
+    const ucDivNet = ucNov * netUC;
+    usP += usDivNet;
+    ucP += ucDivNet;
+    // Tax drag = extra 15% WHT US ETF pays vs UCITS (matches cumSaved in Excel)
+    const drag = usP * dy * 0.30 - ucNov * dy * 0.15;
+    runDrag += drag;
+    annDrag.push(drag);
+    cumDrag.push(runDrag);
+    // Corrected: US tax on Dec port before div, UCITS tax on Nov port (same lag as dividend)
+    runTaxUS += usP * dy * 0.30;
+    runTaxUC += ucNov * dy * 0.15;
+    taxUSLine.push(runTaxUS);
+    taxUCLine.push(runTaxUC);
+    gapByYear.push(ucP - usP);
+  }
+
+  // Annual extra = year-on-year increase in the gap
+  const annGap = gapByYear.map((v, i) => i === 0 ? v : v - gapByYear[i-1]);
+
+  return { usVal: usP, ucVal: ucP, gap: ucP - usP, annGap, cumGap: gapByYear, annDrag, cumDrag, taxUSLine, taxUCLine };
+}
+
+function fmt(n) {
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(1) + 'K';
+  return '$' + Math.round(n);
+}
+
+function niceMax(arr) {
+  const peak = Math.max(...arr) * 1.15;
+  if (!peak || peak <= 0) return 100;
+  const mag = Math.pow(10, Math.floor(Math.log10(peak)));
+  for (const f of [0.1, 0.2, 0.25, 0.5, 1]) {
+    const m = Math.ceil(peak / (mag * f)) * (mag * f);
+    if (m / peak <= 1.25) return m;
+  }
+  return Math.ceil(peak / mag) * mag;
+}
+
+function makeDatasets(annData, cumData, barColor, lineColor) {
+  return [
+    { label: 'Annual', data: annData, type: 'bar', backgroundColor: barColor + 'CC', borderRadius: 4, yAxisID: 'yBar', order: 2 },
+    { label: 'Cumulative', data: cumData, type: 'line', borderColor: lineColor, borderWidth: 2, pointRadius: 0, pointHoverRadius: 0, tension: 0.4, fill: false, yAxisID: 'yLine', order: 1 }
+  ];
+}
+
+function chartOpts() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    layout: { padding: { top: 4, right: 8 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        mode: 'index', intersect: false,
+        backgroundColor: '#0D0D1A', titleColor: '#B0B8C8', bodyColor: '#fff',
+        titleFont: { family: 'Plus Jakarta Sans', size: 10, weight: '600' },
+        bodyFont:  { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
+        padding: 8, cornerRadius: 6,
+        callbacks: { title: i => `Year ${i[0].label}`, label: i => ` ${i.dataset.label}: ${fmt(i.raw)}` }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, border: { display: false }, ticks: { color: '#B0B8C8', font: { family: 'Plus Jakarta Sans', size: 9 }, maxTicksLimit: 8, padding: 4 } },
+      yBar: { type: 'linear', position: 'left', grid: { color: '#F0F2F5' }, border: { display: false }, ticks: { color: '#B0B8C8', font: { family: 'Plus Jakarta Sans', size: 9 }, maxTicksLimit: 4, padding: 4, callback: v => fmt(v) } },
+      yLine: { type: 'linear', position: 'right', grid: { display: false }, border: { display: false }, ticks: { color: '#B0B8C8', font: { family: 'Plus Jakarta Sans', size: 9 }, maxTicksLimit: 4, padding: 4, callback: v => fmt(v) } }
+    },
+    animation: { duration: 300, easing: 'easeOutQuart' }
+  };
+}
+
+const initD = calc(inv, monthly, years, divYield, annualRet);
+const initLabels = Array.from({length: years}, (_, i) => i + 1);
+
+const chartSavings = new Chart(document.getElementById('chartSavings'), {
+  type: 'bar',
+  data: { labels: initLabels, datasets: makeDatasets(initD.annGap, initD.cumGap, '#A78BFA', '#5700FF') },
+  options: chartOpts()
+});
+
+const chartDrag = new Chart(document.getElementById('chartDrag'), {
+  type: 'line',
+  data: { labels: initLabels, datasets: [
+    { label: 'US ETF cumulative tax', data: initD.taxUSLine, borderColor: '#DC2626', borderWidth: 2, pointRadius: 0, pointHoverRadius: 0, tension: 0.4, fill: false, yAxisID: 'yLine', order: 1 },
+    { label: 'UCITS cumulative tax', data: initD.taxUCLine, borderColor: '#A78BFA', borderWidth: 2, pointRadius: 0, pointHoverRadius: 0, tension: 0.4, fill: false, yAxisID: 'yLine', order: 2 }
+  ]},
+  options: (() => { const o = chartOpts(); delete o.scales.yBar; o.scales.yLine.position = 'left'; o.scales.yLine.grid = { color: '#F0F2F5' }; return o; })()
+});
+
+function switchTab(tab) {
+  document.querySelectorAll('.chart-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.chart-pane').forEach(p =>
+    p.classList.toggle('active', p.id === 'pane-' + tab));
+  requestAnimationFrame(() => {
+    chartSavings.resize();
+    chartDrag.resize();
+    if (!_lastData) return;
+    const { labels, d } = _lastData;
+    if (tab === 'savings') {
+      animateBars(chartSavings, labels, d.annGap, d.cumGap, niceMax(d.annGap), niceMax(d.cumGap));
+    } else {
+      animateDragLines(chartDrag, labels, d.taxUSLine, d.taxUCLine, niceMax(d.taxUSLine));
+    }
+  });
+}
+
+// Animate bars rising one by one left to right
+let _animTimers = [];
+let _lastData = null;
+function animateBars(chart, labels, barData, lineData, barMax, lineMax) {
+  // Clear any running animation
+  _animTimers.forEach(t => clearTimeout(t));
+  _animTimers = [];
+
+  // Set axes max immediately
+  chart.options.scales.yBar.max  = barMax;
+  chart.options.scales.yLine.max = lineMax;
+
+  // Reset bars to 0, line to full (line updates instantly)
+  chart.data.labels = labels;
+  chart.data.datasets[0].data = barData.map(() => 0);
+  chart.data.datasets[1].data = lineData;
+  chart.options.animation = false;
+  chart.update();
+  chart.options.animation = { duration: 300, easing: 'easeOutQuart' };
+
+  // Reveal each bar with a stagger
+  barData.forEach((val, i) => {
+    const t = setTimeout(() => {
+      chart.data.datasets[0].data[i] = val;
+      chart.update('active');
+    }, i * 20);
+    _animTimers.push(t);
+  });
+}
+
+function animateDragLines(chart, labels, line1, line2, lineMax) {
+  _animTimers.forEach(t => clearTimeout(t));
+  _animTimers = [];
+  chart.options.scales.yLine.max = lineMax;
+  chart.data.labels = labels;
+  // Reset lines to empty then build point by point
+  chart.data.datasets[0].data = line1.map(() => null);
+  chart.data.datasets[1].data = line2.map(() => null);
+  chart.options.animation = false;
+  chart.update();
+  chart.options.animation = { duration: 80, easing: 'easeOutQuart' };
+  line1.forEach((_, i) => {
+    const t = setTimeout(() => {
+      chart.data.datasets[0].data[i] = line1[i];
+      chart.data.datasets[1].data[i] = line2[i];
+      chart.update('active');
+    }, i * 18);
+    _animTimers.push(t);
+  });
+}
+
+function update() {
+  const d = calc(inv, monthly, years, divYield, annualRet);
+  const labels = Array.from({length: years}, (_, i) => i + 1);
+
+  // Animate gap number
+  const el = document.getElementById('statGap');
+  const target = d.gap;
+  const start = parseFloat(el.dataset.raw) || 0;
+  el.dataset.raw = target;
+  const t0 = performance.now();
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  (function tick(now) {
+    const p = Math.min((now - t0) / 600, 1);
+    el.textContent = fmt(start + (target - start) * ease(p));
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = fmt(target);
+  })(performance.now());
+
+  document.getElementById('statUC').textContent    = fmt(d.ucVal);
+  document.getElementById('statUS').textContent    = fmt(d.usVal);
+  document.getElementById('statSub').textContent   = `vs a US ETF after ${years} years`;
+  const retPct = ((d.gap / d.usVal) * 100).toFixed(1);
+  document.getElementById('savingsChartSub').textContent = `${retPct}% extra gain with UCITS ETFs over time`;
+  const cumSaved = fmt(d.cumDrag[d.cumDrag.length - 1]);
+  document.getElementById('dragChartSub').innerHTML = `<span style="color:var(--brand);font-weight:800;font-size:13px;">${cumSaved}</span> lower tax drag with UCITS ETFs vs US ETFs`;
+  document.getElementById('statUCSub').textContent = `after ${years} years`;
+  document.getElementById('statUSSub').textContent = `after ${years} years`;
+  const totalInvested = inv + monthly * 12 * years;
+  document.getElementById('statInvested').textContent  = fmt(totalInvested);
+  document.getElementById('statInvestedSub').textContent = `over ${years} years`;
+
+  // Animate bars one-by-one for savings chart
+  _lastData = { labels, d };
+  animateBars(chartSavings, labels, d.annGap, d.cumGap, niceMax(d.annGap), niceMax(d.cumGap));
+
+  chartDrag.data.labels = labels;
+  chartDrag.data.datasets[0].data = d.taxUSLine;
+  chartDrag.data.datasets[1].data = d.taxUCLine;
+  chartDrag.options.scales.yLine.max = niceMax(d.taxUSLine);
+  chartDrag.update('active');
+}
+
+function setFill(id, val, min, max) {
+  document.getElementById(id).style.width = ((val - min) / (max - min) * 100) + '%';
+}
+
+function setYears(y) {
+  years = y;
+  document.querySelectorAll('.pill').forEach(b =>
+    b.classList.toggle('active', parseInt(b.textContent) === y));
+  update();
+}
+
+function fmtHint(n) {
+  if (n >= 1000000) return '$' + (n/1000000) + 'M';
+  if (n >= 1000) return '$' + (n/1000) + 'K';
+  return String(n);
+}
+
+function bindSlider(sliderId, inputId, fillId, setter, min, max) {
+  const sl   = document.getElementById(sliderId);
+  const inp  = document.getElementById(inputId);
+  const wrap = inp.closest('.s-input-wrap');
+  const apply = v => { setter(v); setFill(fillId, v, min, max); update(); };
+
+  // Create error hint element
+  const hint = document.createElement('div');
+  hint.style.cssText = 'position:absolute;top:calc(100% + 4px);left:0;background:#DC2626;color:white;font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px;white-space:nowrap;z-index:10;display:none;';
+  wrap.style.position = 'relative';
+  wrap.appendChild(hint);
+
+  function showError(msg) {
+    wrap.style.borderColor = '#DC2626';
+    wrap.style.boxShadow = '0 0 0 3px rgba(220,38,38,0.1)';
+    hint.textContent = msg;
+    hint.style.display = 'block';
+  }
+  function clearError() {
+    wrap.style.borderColor = '';
+    wrap.style.boxShadow = '';
+    hint.style.display = 'none';
+  }
+
+  sl.addEventListener('input', function() {
+    inp.value = this.value;
+    clearError();
+    apply(parseFloat(this.value));
+  });
+
+  inp.addEventListener('input', function() {
+    const raw = parseFloat(this.value);
+    if (this.value === '' || isNaN(raw)) { clearError(); return; }
+    if (raw < min) {
+      showError('Min is ' + fmtHint(min));
+      // still update slider/calc with min so it doesn't freeze
+      sl.value = min; apply(min);
+    } else if (raw > max) {
+      showError('Max is ' + fmtHint(max));
+      sl.value = max; apply(max);
+    } else {
+      clearError();
+      sl.value = raw; apply(raw);
+    }
+  });
+
+  inp.addEventListener('blur', function() {
+    clearError();
+    let v = parseFloat(this.value);
+    if (isNaN(v) || v < min) v = min;
+    if (v > max) v = max;
+    this.value = v;
+    sl.value = v;
+    apply(v);
+  });
+}
+
+bindSlider('amtSlider', 'amtInput', 'trackFill', v => { inv = v; },        10000, 500000);
+bindSlider('moSlider',  'moInput',  'moFill',    v => { monthly = v; },    0,     10000);
+bindSlider('divSlider', 'divInput', 'divFill',   v => { divYield = v/100; }, 0.5, 5);
+bindSlider('retSlider', 'retInput', 'retFill',   v => { annualRet = v/100; }, 1,  15);
+
+update();
+</script>
+</body>
+</html>
